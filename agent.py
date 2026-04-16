@@ -106,6 +106,8 @@ Create a sharp, specific blog outline. No generic structures.
 4. Core argument — what is the single most important thing the reader should walk away believing or knowing?
 5. Conclusion angle — how does it end? A challenge, a reframe, a call to action, or a hard truth?
 
+Recommended Length: based on the topic complexity and how many distinct angles exist, recommend one of: short / medium / long. One word answer on its own line at the end.
+
 Think about what makes this topic genuinely interesting. What do most articles on this topic get wrong or skip over?
 """
     return _invoke(prompt, temperature=0.3)

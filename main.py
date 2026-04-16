@@ -20,15 +20,24 @@ while True:
     if not audience:
         audience = "general readers"
 
-    length = input("Blog length — short / medium / long (press Enter for 'medium'): ").strip().lower()
-    if length not in ("short", "medium", "long"):
-        length = "medium"
-
-    separator()
-
     print("Step 1 — Planning the blog...")
     plan = plan_blog(topic, audience)
     print(plan)
+
+    # Extract recommended length from plan
+    recommended = "medium"
+    for line in plan.lower().split("\n"):
+        if "recommended length:" in line:
+            for opt in ("short", "medium", "long"):
+                if opt in line:
+                    recommended = opt
+                    break
+
+    separator()
+
+    length = input(f"Blog length — short / medium / long (press Enter for recommended: '{recommended}'): ").strip().lower()
+    if length not in ("short", "medium", "long"):
+        length = recommended
 
     separator()
 
