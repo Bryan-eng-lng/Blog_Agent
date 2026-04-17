@@ -7,7 +7,7 @@ def separator():
 
 
 print("Blog Writer Agent")
-print("Type 'exit' to stop.\n")
+print("Type 'exit' to quit, 'dry-run' after topic to preview plan only.\n")
 
 while True:
 
@@ -19,6 +19,8 @@ while True:
     audience = input("Target audience (press Enter for 'general readers'): ").strip()
     if not audience:
         audience = "general readers"
+
+    separator()
 
     print("Step 1 — Planning the blog...")
     plan = plan_blog(topic, audience)
@@ -35,21 +37,27 @@ while True:
 
     separator()
 
+    print("Step 2 — Analyzing competitor gap...")
+    gap = analyze_competitor_gap(topic)
+    print(gap)
+
+    separator()
+
+    dry_run = input("Dry run preview done. Continue with full blog? (y/n, press Enter for yes): ").strip().lower()
+    if dry_run == "n":
+        print("Dry run complete. No blog generated.")
+        separator()
+        continue
+
     length = input(f"Blog length — short / medium / long (press Enter for recommended: '{recommended}'): ").strip().lower()
     if length not in ("short", "medium", "long"):
         length = recommended
 
     separator()
 
-    print("Step 2 — Researching the topic...")
+    print("Step 3 — Researching the topic...")
     research_data = research(topic)
     print("Research complete.")
-
-    separator()
-
-    print("Step 3 — Analyzing competitor gap...")
-    gap = analyze_competitor_gap(topic)
-    print(gap)
 
     separator()
 
@@ -88,7 +96,7 @@ while True:
 
     print("Step 9 — Generating TL;DR, pull quote, and key takeaway...")
     extras = generate_extras(final_blog, topic)
-    print(f"TL;DR:")
+    print("TL;DR:")
     for bullet in extras["tldr"]:
         print(f"  - {bullet}")
     print(f"Pull Quote: {extras['pull_quote']}")

@@ -14,9 +14,13 @@ The Lost Art of Male Friendship
 
 Societal expectations and traditional masculinity norms can make it difficult for men to form and maintain close relationships with other men. The numbers are telling: 15% of men claim to have no close friends, a 12% increase since 1990. This suggests that men are struggling to form meaningful connections with others, and that this issue is becoming increasingly prevalent. To put this into perspective, having no close friends is equivalent to being a non-smoker who has a 50% increased risk of premature death. The decline of male friendships is a public health issue that requires immediate attention.
 
+
+
 From Frat Brothers to Strangers: How Life Transitions Can Erode Male Social Circles
 
 Significant life events like marriage, parenthood, and career changes can lead to a decline in social connections and a sense of isolation. As men navigate these transitions, they often find themselves losing touch with old friends and struggling to form new relationships. For example, a romantic partner often becomes a man's main source of support, so if that relationship changes, isolation tends to follow. This is similar to a tree losing its roots – without a strong foundation, it becomes vulnerable to external forces. Men are more likely to lose close friends with age, especially after milestones like marriage, divorce, and relocation, leaving them feeling disconnected and alone.
+
+
 
 The Mask of Masculinity: Why Men Struggle to Open Up About Their Emotional Pain
 
