@@ -10,8 +10,6 @@ from tools import web_search
 
 load_dotenv()
 
-
-
 GROQ_KEYS = [v for k, v in sorted(os.environ.items()) if k.startswith("GROQ_KEY") and v]
 _key_index = 0
 
