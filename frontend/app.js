@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:8000';
+const API_URL = 'https://blog-agent-699e.onrender.com';
 let selectedLength = 'medium';
 
 function selectLength(length) {
