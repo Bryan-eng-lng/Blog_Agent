@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blog Writer Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+
+    <header class="header">
+      <div class="header-inner">
+        <div class="logo">
+          <span class="logo-icon">✦</span>
+          <span class="logo-text">BlogAgent</span>
+        </div>
+        <p class="tagline">Research-first AI blog writing</p>
+      </div>
+    </header>
+
+    <main class="main">
+
+      <!-- Input Form -->
+      <section class="form-section" id="formSection">
+        <div class="form-card">
+          <h1 class="form-title">Write a blog that actually says something.</h1>
+          <p class="form-subtitle">Real research. Real facts. No filler.</p>
+
+          <div class="form-group">
+            <label class="label">Blog Topic</label>
+            <input
+              type="text"
+              id="topicInput"
+              class="input"
+              placeholder="e.g. Why most diets fail in the first 30 days"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="label">Target Audience</label>
+            <input
+              type="text"
+              id="audienceInput"
+              class="input"
+              placeholder="e.g. People aged 25-40 who keep falling off track"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="label">Blog Length</label>
+            <div class="length-pills">
+              <button class="pill" data-length="short" onclick="selectLength('short')">
+                Short <span class="pill-sub">600–800 words</span>
+              </button>
+              <button class="pill active" data-length="medium" onclick="selectLength('medium')">
+                Medium <span class="pill-sub">1000–1500 words</span>
+              </button>
+              <button class="pill" data-length="long" onclick="selectLength('long')">
+                Long <span class="pill-sub">2000–2500 words</span>
+              </button>
+            </div>
+          </div>
+
+          <button class="generate-btn" id="generateBtn" onclick="generateBlog()">
+            <span id="btnText">Generate Blog</span>
+            <span class="btn-icon">→</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Progress -->
+      <section class="progress-section hidden" id="progressSection">
+        <div class="progress-card">
+          <h2 class="progress-title">Writing your blog...</h2>
+          <div class="steps" id="stepsList">
+            <div class="step" id="step1"><span class="step-dot"></span><span class="step-label">Planning the blog</span></div>
+            <div class="step" id="step2"><span class="step-dot"></span><span class="step-label">Analyzing competitor gap</span></div>
+            <div class="step" id="step3"><span class="step-dot"></span><span class="step-label">Researching the topic</span></div>
+            <div class="step" id="step4"><span class="step-dot"></span><span class="step-label">Extracting verified facts</span></div>
+            <div class="step" id="step5"><span class="step-dot"></span><span class="step-label">Writing first draft</span></div>
+            <div class="step" id="step6"><span class="step-dot"></span><span class="step-label">Critiquing and rewriting</span></div>
+            <div class="step" id="step7"><span class="step-dot"></span><span class="step-label">Removing clichés</span></div>
+            <div class="step" id="step8"><span class="step-dot"></span><span class="step-label">Generating SEO metadata</span></div>
+            <div class="step" id="step9"><span class="step-dot"></span><span class="step-label">Scoring the blog</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Output -->
+      <section class="output-section hidden" id="outputSection">
+
+        <div class="output-actions">
+          <button class="action-btn" onclick="resetForm()">← New Blog</button>
+          <button class="action-btn primary" onclick="downloadPDF()">Download PDF</button>
+        </div>
+
+        <!-- Score Bar -->
+        <div class="score-card" id="scoreCard"></div>
+
+        <!-- Blog Content -->
+        <article class="blog-article" id="blogContent"></article>
+
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <p>Built with LangChain · Groq · Tavily · Python</p>
+    </footer>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

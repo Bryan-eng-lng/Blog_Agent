@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 
@@ -6,6 +7,13 @@ from agent import plan_blog, research, write_blog, critique_and_rewrite, generat
 from memory import store_memory, retrieve_memory
 
 app = FastAPI(title="Blog Writer Agent")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class BlogRequest(BaseModel):

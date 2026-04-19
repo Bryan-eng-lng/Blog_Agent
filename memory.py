@@ -1,14 +1,11 @@
 import os
 from dotenv import load_dotenv
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings import FakeEmbeddings
 from langchain_chroma import Chroma
 
 load_dotenv()
 
-embeddings = HuggingFaceEmbeddings(
-    model_name="all-MiniLM-L6-v2",
-    model_kwargs={"device": "cpu"}
-)
+embeddings = FakeEmbeddings(size=384)
 
 vectorstore = Chroma(
     collection_name="blog_memory",
@@ -22,6 +19,8 @@ def store_memory(text: str):
 
 
 def retrieve_memory(query: str) -> str:
-    docs = vectorstore.similarity_search_with_relevance_scores(query, k=3)
-    relevant = [doc.page_content for doc, score in docs if score > 0.7]
-    return "\n".join(relevant) if relevant else ""
+    try:
+        docs = vectorstore.similarity_search(query, k=3)
+        return "\n".join([doc.page_content for doc in docs]) if docs else ""
+    except Exception:
+        return ""
