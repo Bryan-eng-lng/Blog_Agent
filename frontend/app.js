@@ -1,6 +1,9 @@
 const API_URL = 'https://blog-agent-699e.onrender.com';
 let selectedLength = 'medium';
 
+// Wake up Render on page load
+fetch(`${API_URL}/docs`).catch(() => {});
+
 function selectLength(length) {
   selectedLength = length;
   document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
@@ -53,11 +56,17 @@ async function generateBlog() {
   });
 
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 180000); // 3 min timeout
+
     const response = await fetch(`${API_URL}/generate-blog`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ topic, audience: audience || 'general readers', length: selectedLength })
+      body: JSON.stringify({ topic, audience: audience || 'general readers', length: selectedLength }),
+      signal: controller.signal
     });
+
+    clearTimeout(timeout);
 
     if (!response.ok) throw new Error('API error');
     const data = await response.json();
@@ -75,7 +84,11 @@ async function generateBlog() {
     show('formSection');
     btn.disabled = false;
     document.getElementById('btnText').textContent = 'Generate Blog';
-    alert('Something went wrong. Make sure the API server is running.');
+    if (err.name === 'AbortError') {
+      alert('Request timed out. The server may be waking up — please try again in 30 seconds.');
+    } else {
+      alert('Something went wrong. Please try again.');
+    }
   }
 }
 
