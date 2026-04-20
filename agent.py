@@ -116,27 +116,30 @@ Blog:
 
 def plan_blog(topic: str, audience: str) -> str:
     prompt = f"""
-You are a blog strategist who has worked across every niche — tech, health, finance, culture, science, business, lifestyle.
+You are a blog strategist and content analyst.
 
 Topic: {topic}
 Target Audience: {audience}
 
-Create a sharp, specific blog outline. No generic structures.
+Do two things in one response:
 
-1. Title — make it specific, curiosity-driven, and honest. Avoid clickbait. Avoid vague titles.
-2. Opening hook — what specific tension, surprising fact, or uncomfortable truth does the intro open with? Be concrete.
-3. 4 to 6 section headings — each with a one-line description of exactly what it covers. Make each section earn its place.
-4. Core argument — what is the single most important thing the reader should walk away believing or knowing?
-5. Conclusion angle — how does it end? A challenge, a reframe, a call to action, or a hard truth?
+OUTLINE:
+1. Title — specific, curiosity-driven, honest.
+2. Opening hook — specific tension, surprising fact, or uncomfortable truth.
+3. 4 to 6 section headings — each with a one-line description.
+4. Core argument — the single most important takeaway.
+5. Conclusion angle — challenge, reframe, call to action, or hard truth.
+Recommended Length: one word — short / medium / long
 
-Recommended Length: based on the topic complexity and how many distinct angles exist, recommend one of: short / medium / long. One word answer on its own line at the end.
-
-Think about what makes this topic genuinely interesting. What do most articles on this topic get wrong or skip over?
+COMPETITOR GAP:
+In 2-3 sentences: what angle do most articles on this topic take, and what unique angle would make this blog stand out?
 """
     return _invoke(prompt, temperature=0.3)
 
 
-def research(topic: str) -> str:
+def analyze_competitor_gap(topic: str) -> str:
+    # Merged into plan_blog to save LLM calls
+    return ""
     queries = [
         topic,
         f"{topic} surprising facts and lesser known insights",
@@ -152,27 +155,6 @@ def research(topic: str) -> str:
         results = list(executor.map(fetch, queries))
 
     return "\n\n".join(results)
-
-
-def analyze_competitor_gap(topic: str) -> str:
-    results = web_search(f"{topic} blog article")
-    prompt = f"""
-You are a content strategist analyzing what's already been written on a topic.
-
-Topic: {topic}
-
-Existing content found online:
-{results}
-
-Identify:
-1. What angle do most existing articles take on this topic?
-2. What is missing, underexplored, or never addressed?
-3. What specific questions are readers asking that no article answers well?
-4. What unique angle would make a new blog genuinely stand out?
-
-Return 3 to 4 sharp, specific sentences. No fluff.
-"""
-    return _invoke(prompt, temperature=0.3)
 
 
 def extract_facts(topic: str, research_data: str) -> str:

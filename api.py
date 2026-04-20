@@ -30,39 +30,33 @@ def generate_blog(request: BlogRequest):
     audience = request.audience
     length = request.length
 
-    # Step 1: Plan
+    # Step 1: Plan (includes competitor gap analysis)
     plan = plan_blog(topic, audience)
-    time.sleep(5)
+    time.sleep(3)
 
     # Step 2: Research
     research_data = research(topic)
-    time.sleep(5)
+    time.sleep(3)
 
-    # Step 3: Competitor gap analysis
-    gap = analyze_competitor_gap(topic)
-    time.sleep(5)
-
-    # Step 4: Retrieve memory
+    # Step 3: Retrieve memory
     memory = retrieve_memory(topic)
 
-    # Step 5: Write first draft
-    draft = write_blog(topic, audience, plan, research_data, memory, length=length, gap=gap)
+    # Step 4: Write first draft
+    draft = write_blog(topic, audience, plan, research_data, memory, length=length, gap="")
 
-    # Step 6: Critique and rewrite
+    # Step 5: Critique and rewrite
     final_blog = critique_and_rewrite(draft, topic, audience)
-    time.sleep(5)
+    time.sleep(3)
 
     # Step 7: Remove cliches
     final_blog = fix_cliches(final_blog, topic)
 
-    # Step 8: Generate SEO metadata
+    # Step 8: Generate SEO, extras and score in one call
     seo = generate_seo(topic, final_blog)
-
-    # Step 9: Score the blog
-    scores = score_blog(final_blog, topic, seo)
-
-    # Step 9: Generate extras
+    time.sleep(3)
     extras = generate_extras(final_blog, topic)
+    time.sleep(3)
+    scores = score_blog(final_blog, topic, seo)
 
     # Step 10: Store to memory
     store_memory(topic)
