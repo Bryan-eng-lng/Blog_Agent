@@ -1,3 +1,4 @@
+import time
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -31,12 +32,15 @@ def generate_blog(request: BlogRequest):
 
     # Step 1: Plan
     plan = plan_blog(topic, audience)
+    time.sleep(5)
 
     # Step 2: Research
     research_data = research(topic)
+    time.sleep(5)
 
     # Step 3: Competitor gap analysis
     gap = analyze_competitor_gap(topic)
+    time.sleep(5)
 
     # Step 4: Retrieve memory
     memory = retrieve_memory(topic)
@@ -46,6 +50,7 @@ def generate_blog(request: BlogRequest):
 
     # Step 6: Critique and rewrite
     final_blog = critique_and_rewrite(draft, topic, audience)
+    time.sleep(5)
 
     # Step 7: Remove cliches
     final_blog = fix_cliches(final_blog, topic)
