@@ -22,8 +22,7 @@ def _invoke(prompt: str, temperature: float) -> str:
             from langchain_cerebras import ChatCerebras
             llm = ChatCerebras(
                 model="llama-3.3-70b",
-                temperature=temperature,
-                api_key=CEREBRAS_KEY
+                temperature=temperature
             )
             return llm.invoke(prompt).content
         except Exception as e:
