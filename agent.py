@@ -18,15 +18,22 @@ def _invoke(prompt: str, temperature: float) -> str:
 
     # Try Cerebras first — faster and higher rate limits
     if CEREBRAS_KEY:
-        try:
-            from langchain_cerebras import ChatCerebras
-            llm = ChatCerebras(
-                model="llama-3.3-70b",
-                temperature=temperature
-            )
-            return llm.invoke(prompt).content
-        except Exception as e:
-            print(f"Cerebras failed: {e}, falling back to Groq...")
+        for attempt in range(3):
+            try:
+                from langchain_cerebras import ChatCerebras
+                llm = ChatCerebras(
+                    model="llama-3.3-70b",
+                    temperature=temperature
+                )
+                return llm.invoke(prompt).content
+            except Exception as e:
+                err = str(e).lower()
+                if "rate" in err or "429" in err:
+                    print(f"Cerebras rate limit, waiting 10s... (attempt {attempt+1})")
+                    time.sleep(10)
+                else:
+                    print(f"Cerebras failed: {e}, falling back to Groq...")
+                    break
 
     # Fall back to Groq with key rotation
     for _ in range(len(GROQ_KEYS) * 2):
