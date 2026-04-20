@@ -138,6 +138,14 @@ async function fetchUnsplashImage(query) {
   }
 }
 
+function cleanMarkdown(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/^#+\s/gm, '')
+    .trim();
+}
+
 async function renderBlog(data) {
   const { topic, final_blog, extras, seo } = data;
 
@@ -187,13 +195,13 @@ async function renderBlog(data) {
 
   // Pull quote
   const pullQuoteHtml = extras.pull_quote ? `
-    <blockquote class="blog-pull-quote">"${extras.pull_quote}"</blockquote>` : '';
+    <blockquote class="blog-pull-quote">"${cleanMarkdown(extras.pull_quote)}"</blockquote>` : '';
 
   // Key takeaway
   const takeawayHtml = extras.key_takeaway ? `
     <div class="blog-key-takeaway">
       <div class="blog-key-takeaway-label">Key Takeaway</div>
-      <p>${extras.key_takeaway}</p>
+      <p>${cleanMarkdown(extras.key_takeaway)}</p>
     </div>` : '';
 
   // SEO section
@@ -228,14 +236,13 @@ function downloadPDF() {
     margin: [15, 20],
     filename,
     image: { type: 'jpeg', quality: 0.95 },
-    html2canvas: { scale: 2, backgroundColor: '#ffffff' },
+    html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
 
-  // Temporarily style for PDF
   element.style.background = 'white';
-  element.style.color = 'black';
-  element.style.padding = '0';
+  element.style.color = '#111';
+  element.style.padding = '20px';
 
   html2pdf().set(opt).from(element).save().then(() => {
     element.style.background = '';
