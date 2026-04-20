@@ -3,6 +3,7 @@ uvicorn
 python-dotenv
 langchain
 langchain-groq
+langchain-cerebras
 langchain-community
 langchain-chroma
 groq

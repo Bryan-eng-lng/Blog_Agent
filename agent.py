@@ -6,18 +6,30 @@ from langchain_groq import ChatGroq
 from groq import RateLimitError
 from tools import web_search
 
-
-
 load_dotenv()
 
 GROQ_KEYS = [v for k, v in sorted(os.environ.items()) if k.startswith("GROQ_KEY") and v]
+CEREBRAS_KEY = os.getenv("CEREBRAS_API_KEY")
 _key_index = 0
-
-
 
 
 def _invoke(prompt: str, temperature: float) -> str:
     global _key_index
+
+    # Try Cerebras first — faster and higher rate limits
+    if CEREBRAS_KEY:
+        try:
+            from langchain_cerebras import ChatCerebras
+            llm = ChatCerebras(
+                model="llama-3.3-70b",
+                temperature=temperature,
+                api_key=CEREBRAS_KEY
+            )
+            return llm.invoke(prompt).content
+        except Exception as e:
+            print(f"Cerebras failed: {e}, falling back to Groq...")
+
+    # Fall back to Groq with key rotation
     for _ in range(len(GROQ_KEYS) * 2):
         try:
             llm = ChatGroq(
@@ -27,10 +39,11 @@ def _invoke(prompt: str, temperature: float) -> str:
             )
             return llm.invoke(prompt).content
         except RateLimitError:
-            print(f"Rate limit on key {_key_index + 1}, switching...")
+            print(f"Rate limit on Groq key {_key_index + 1}, switching...")
             _key_index = (_key_index + 1) % len(GROQ_KEYS)
             time.sleep(2)
-    raise Exception("All Groq keys are rate limited. Try again in a minute.")
+
+    raise Exception("All LLM providers are rate limited. Try again in a minute.")
 
 
 CLICHES = [
