@@ -182,14 +182,14 @@ You are a research analyst. Extract only the most concrete, specific, and useful
 Topic: {topic}
 
 From the research below, extract:
-- Specific statistics with their source
+- Specific statistics with their source in brackets e.g. "67% of developers use Copilot daily [GitHub Survey 2024]"
 - Named tools, companies, or products that are relevant
 - Real examples of what is actually happening right now
 - Surprising or counterintuitive findings
-- Direct quotes from named experts or studies
+- Direct quotes from named experts or studies with attribution e.g. "Quote here" — Name, Title
 - Anything most people don't know about this topic
 
-Ignore vague claims and marketing language.
+Every fact MUST have a source in brackets. If no source is available, skip it.
 Return a clean numbered list of concrete facts only.
 
 Research Data:
@@ -358,6 +358,36 @@ Key Takeaway: [the sentence]
             extras["key_takeaway"] = line.partition(":")[2].strip()
 
     return extras
+
+
+def generate_citations(blog: str, facts: str, topic: str) -> str:
+    prompt = f"""
+You are a fact-checker and citations editor.
+
+Topic: {topic}
+
+Below is a blog and the verified facts with sources that were used to write it.
+
+Your job:
+1. Find every statistic, data point, or named claim in the blog that matches a fact from the list
+2. Add an inline citation marker after it like [1], [2] etc.
+3. At the end of the blog, add a "Sources" section listing each citation
+
+Rules:
+- Only cite facts that actually appear in the blog
+- Keep the citation markers minimal and unobtrusive
+- The Sources section should be clean: [1] Source name or URL
+- Do not change any other part of the blog
+
+Verified Facts with Sources:
+{facts}
+
+Blog:
+{blog}
+
+Return the full blog with inline citations and Sources section appended at the end.
+"""
+    return _invoke(prompt, temperature=0.0)
 
 
 def generate_seo(topic: str, blog: str) -> dict:

@@ -6,6 +6,7 @@ langchain-groq
 langchain-cerebras
 langchain-community
 langchain-chroma
+langgraph
 groq
 tavily-python
 chromadb
