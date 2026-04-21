@@ -14,3 +14,4 @@ def web_search(query: str) -> str:
         f"Title: {r['title']}\nURL: {r['url']}\nContent: {r['content']}"
         for r in results
     )
+

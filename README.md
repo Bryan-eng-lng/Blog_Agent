@@ -1,154 +1,214 @@
 # Blog Writer Agent
 
-A research-first blog writing agent that produces deeply researched, publish-ready blog posts using a multi-step agentic pipeline.
+> **Live App → [blog-agent-rho.vercel.app](https://blog-agent-rho.vercel.app)**
 
-Unlike a single LLM call, this agent plans, researches, extracts facts, analyzes competitors, writes, critiques, rewrites, removes clichés, scores, and generates SEO metadata — all automatically.
+A research-first AI blog writing agent that produces deeply researched, publish-ready blog posts. Not a ChatGPT wrapper — a full multi-step pipeline that searches the web, extracts real facts, critiques its own output, and scores the final result before showing you anything.
 
 ---
 
 ## Pipeline
 
-1. Plan — generates a specific, audience-aware blog outline with recommended length
-2. Competitor Gap Analysis — finds what existing articles miss and writes to fill that gap
-3. Research — runs 4 parallel web searches using Tavily
-4. Memory Retrieval — pulls relevant past context from vector memory (Chroma)
-5. Fact Extraction — strips raw research down to named sources, real stats, and concrete examples
-6. Write Draft — writes a full blog using only verified facts
-7. Critique and Rewrite — a senior editor pass that fixes weak hooks, filler, and poor conclusions
-8. Cliché Detection — scans for 30+ known clichés and replaces them with topic-specific language
-9. SEO Metadata — generates meta title, description, keywords, tags, and read time
-10. Extras — generates TL;DR, pull quote, and key takeaway
-11. Blog Score — scores the final blog across readability, hook strength, depth, SEO, and conclusion quality
-
----
-
-## Tech Stack
-
-- LLM: Groq (llama-3.3-70b-versatile) with automatic key rotation
-- Search: Tavily API (advanced depth, parallel queries)
-- Memory: Chroma + HuggingFace embeddings (all-MiniLM-L6-v2, no server required)
-- Framework: LangChain + FastAPI
-
----
-
-## Setup
-
-1. Clone the repo and install dependencies
-
-```bash
-pip install -r requirements.txt
 ```
+┌─────────────────────────────────────────────────────────────────┐
+│                        BLOG WRITER AGENT                        │
+└─────────────────────────────────────────────────────────────────┘
 
-2. Create a `.env` file in the `blog_agent` folder
-
+  Topic + Audience + Length
+          │
+          ▼
+  ┌───────────────┐
+  │   1. PLAN     │  Generates outline, hook, sections, recommended length
+  └───────┬───────┘
+          │
+          ▼
+  ┌───────────────┐
+  │  2. RESEARCH  │  4 parallel web searches via Tavily (advanced depth)
+  └───────┬───────┘
+          │
+          ▼
+  ┌───────────────┐
+  │ 3. EXTRACT    │  Strips raw data → named sources, real stats, quotes only
+  │    FACTS      │
+  └───────┬───────┘
+          │
+          ▼
+  ┌───────────────┐
+  │  4. WRITE     │  Full blog using verified facts only. No hallucinations.
+  │    DRAFT      │
+  └───────┬───────┘
+          │
+          ▼
+  ┌───────────────┐
+  │ 5. CRITIQUE   │  Senior editor pass — fixes hooks, flow, weak conclusions
+  │  + REWRITE    │
+  └───────┬───────┘
+          │
+          ▼
+  ┌───────────────┐
+  │  6. CLICHÉ    │  Scans 30+ known clichés, replaces with topic-specific language
+  │   DETECTOR    │
+  └───────┬───────┘
+          │
+          ▼
+  ┌───────────────┐     ┌───────────────┐     ┌───────────────┐
+  │  7. SEO META  │     │  8. EXTRAS    │     │  9. SCORE     │
+  │               │     │  TL;DR        │     │  /10 with     │
+  │  Title, desc, │     │  Pull Quote   │     │  5 dimensions │
+  │  keywords     │     │  Key Takeaway │     │               │
+  └───────────────┘     └───────────────┘     └───────────────┘
+          │                     │                     │
+          └─────────────────────┴─────────────────────┘
+                                │
+                                ▼
+                    ┌───────────────────────┐
+                    │   FINAL BLOG OUTPUT   │
+                    │   + PDF Download      │
+                    └───────────────────────┘
 ```
-TAVILY_API_KEY=your_tavily_key
-GROQ_KEY_1=your_first_groq_key
-GROQ_KEY_2=your_second_groq_key
-```
-
-3. Run the CLI
-
-```bash
-python main.py
-```
-
-Or start the API server
-
-```bash
-uvicorn api:app --reload
-```
-
-No Ollama required. Embeddings run locally via HuggingFace.
-
----
-
-## Dry Run Mode
-
-After entering a topic and audience, the agent shows the blog plan and competitor gap analysis before spending any tokens on writing. You can review and cancel if the angle isn't right.
-
-```
-Enter blog topic: Why Most Diets Fail in the First 30 Days
-Target audience: People aged 25-40 who keep falling off track
-
-Step 1 — Planning the blog...
-[outline appears]
-
-Step 2 — Analyzing competitor gap...
-Most articles focus on willpower. None address the hormonal response to restriction.
-
-Dry run preview done. Continue with full blog? (y/n): 
-```
-
----
-
-## API Usage
-
-POST `/generate-blog`
-
-```json
-{
-  "topic": "Why Most Diets Fail in the First 30 Days",
-  "audience": "People aged 25-40 who keep falling off track",
-  "length": "medium"
-}
-```
-
-Length options: `short` (600-800 words), `medium` (1000-1500 words), `long` (2000-2500 words)
-
-Response includes: `plan`, `draft`, `final_blog`, `extras` (TL;DR, pull quote, key takeaway), `seo`, `scores`
-
----
-
-## Example Output
-
-Topic: "Why Your Morning Coffee Is More Expensive Than It Was 2 Years Ago"
-Target Audience: Coffee drinkers aged 22-40
-
-**Competitor Gap Analysis:**
-> Most articles blame inflation generically. None explain the role of middlemen and commodity traders in amplifying price spikes beyond what climate alone would cause.
-
-**TL;DR:**
-- Ground roast coffee hit $8.41/lb in July 2025 — a 33% increase from a year ago
-- Climate change in Brazil reduced crop yields, but commodity traders amplified the spike
-- Specialty coffee demand is shifting costs upstream to farmers and consumers simultaneously
-
-**Pull Quote:**
-> "Free shipping isn't really free for any of us — the cost will have to get swallowed somewhere."
-
-**Blog Score:**
-- Readability: 8 — Short paragraphs, clear language
-- Hook Strength: 9 — Opens with a specific dated stat
-- Content Depth: 8 — Named sources and real data throughout
-- SEO Strength: 7 — Focus keyword used naturally
-- Conclusion Quality: 8 — Ends with a specific, memorable line
-- Overall Score: 8.0
-- Verdict: Strong research and structure, conclusion could be sharper
 
 ---
 
 ## What Makes It Different
 
-Most AI blog tools make a single LLM call. This agent:
+| Feature | This Agent | ChatGPT / Claude |
+|---|---|---|
+| Live web research | Yes — Tavily API | No — training data only |
+| Fact extraction layer | Yes — verified facts only | No |
+| Self-critique and rewrite | Yes — dedicated editor pass | No |
+| Cliché detection | Yes — 30+ phrases banned | No |
+| Quality scoring | Yes — 5 dimensions, /10 | No |
+| TL;DR + Pull Quote | Yes — auto-generated | No |
+| SEO metadata | Yes — title, desc, keywords | No |
+| PDF export | Yes | No |
 
-- Searches the web before writing — no hallucinated statistics
-- Analyzes what competitors have already written and fills the gap
-- Runs a dedicated fact extraction step so the writer only uses verified data
-- Has a built-in editor that rewrites weak sections
-- Detects and replaces 30+ clichés automatically
-- Scores its own output so users know what they're publishing
-- Dry run mode lets users review the plan before committing
+---
+
+## Tech Stack
+
+```
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│   Frontend  │    │   Backend   │    │     LLM     │    │  Research   │
+│             │    │             │    │             │    │             │
+│  HTML/CSS   │───▶│   FastAPI   │───▶│    Groq     │    │   Tavily    │
+│  Vanilla JS │    │   Python    │    │  Cerebras   │    │  Advanced   │
+│   Vercel    │    │   Render    │    │ LangChain   │    │   Search    │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+
+                                       ┌─────────────┐
+                                       │   Memory    │
+                                       │             │
+                                       │   Chroma    │
+                                       │  Vector DB  │
+                                       └─────────────┘
+```
+
+---
+
+## Prompt Engineering Highlights
+
+**Temperature Strategy**
+Different steps use different temperatures — not one setting for everything:
+- `0.0` — Scorer (deterministic, consistent)
+- `0.3` — Planner, Fact Extractor, SEO (precise, structured)
+- `0.5` — Cliché Fixer (creative replacements)
+- `0.6` — Writer, Editor (creative but controlled)
+
+**Key Prompt Tricks**
+- Writer persona: "contributor to The Atlantic, Wired, HBR, Vox" — sets a quality bar
+- Banned phrases: "leverage", "synergy", "revolutionize" — forces real language
+- The "so what" rule: after every stat, explain what it means for the reader
+- Analogy requirement: at least one strong analogy per blog
+- Banned openers: "In today's world..." and "Have you ever wondered..." — never
+- No question endings: conclusions must end with a statement, not a question
+
+---
+
+## Setup
+
+**1. Clone and install**
+```bash
+git clone https://github.com/Bryan-eng-Ing/Blog_Agent
+cd Blog_Agent
+pip install -r requirements.txt
+```
+
+**2. Create `.env`**
+```
+TAVILY_API_KEY=your_tavily_key
+GROQ_KEY_1=your_groq_key_1
+GROQ_KEY_2=your_groq_key_2
+CEREBRAS_API_KEY=your_cerebras_key
+```
+
+**3. Run CLI**
+```bash
+python main.py
+```
+
+**4. Run API**
+```bash
+uvicorn api:app --reload
+```
+
+---
+
+## API
+
+`POST /generate-blog`
+
+```json
+{
+  "topic": "Why most diets fail in the first 30 days",
+  "audience": "People aged 25-40 who keep falling off track",
+  "length": "medium"
+}
+```
+
+Length options: `short` (600-800 words) · `medium` (1000-1500 words) · `long` (2000-2500 words)
+
+Response includes: `plan` · `draft` · `final_blog` · `extras` · `seo` · `scores`
+
+---
+
+## Example Output
+
+**Blog Score**
+```
+Readability:        8  — Short paragraphs, clear language
+Hook Strength:      9  — Opens with a specific stat
+Content Depth:      8  — Named sources and real data throughout
+SEO Strength:       7  — Focus keyword used naturally
+Conclusion Quality: 8  — Ends with a specific, memorable line
+Overall Score:      8.0 / 10
+```
+
+**TL;DR (auto-generated)**
+- Ground roast coffee hit $8.41/lb in July 2025 — a 33% increase from a year ago
+- Climate change in Brazil reduced crop yields, but commodity traders amplified the spike
+- Specialty coffee demand is shifting costs upstream to farmers and consumers simultaneously
 
 ---
 
 ## Project Structure
 
 ```
-blog_agent/
-├── agent.py       # Core pipeline — all LLM functions
-├── tools.py       # Tavily web search
-├── memory.py      # Chroma vector store with HuggingFace embeddings
-├── main.py        # CLI interface with dry-run mode
-├── api.py         # FastAPI endpoint
-└── .env           # API keys (not committed)
+Blog_Agent/
+├── agent.py          # Full pipeline — all LLM functions
+├── tools.py          # Tavily web search
+├── memory.py         # Chroma vector store
+├── main.py           # CLI with dry-run mode
+├── api.py            # FastAPI endpoint
+├── requirements.txt  # Dependencies
+├── frontend/
+│   ├── index.html    # UI
+│   ├── style.css     # Dark minimal design
+│   └── app.js        # Frontend logic
+└── .env              # API keys (not committed)
 ```
+
+---
+
+## Deployment
+
+- **Backend** — [Render](https://render.com) · Start command: `uvicorn api:app --host 0.0.0.0 --port $PORT`
+- **Frontend** — [Vercel](https://vercel.com) · Root directory: `frontend`
