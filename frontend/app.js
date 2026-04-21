@@ -68,7 +68,11 @@ async function generateBlog() {
 
     clearTimeout(timeout);
 
-    if (!response.ok) throw new Error('API error');
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      const errMsg = errData.detail || 'Something went wrong. Please try again.';
+      throw new Error(errMsg);
+    }
     const data = await response.json();
 
     for (let i = 1; i <= 9; i++) setStep(i, 'done');
@@ -87,7 +91,7 @@ async function generateBlog() {
     if (err.name === 'AbortError') {
       alert('Request timed out. The server may be waking up — please try again in 30 seconds.');
     } else {
-      alert('Something went wrong. Please try again.');
+      alert(err.message || 'Something went wrong. Please try again.');
     }
   }
 }

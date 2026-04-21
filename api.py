@@ -1,5 +1,5 @@
 import time
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
@@ -24,9 +24,21 @@ class BlogRequest(BaseModel):
 
 @app.post("/generate-blog")
 def generate_blog(request: BlogRequest):
-    result = run_blog_pipeline(
-        topic=request.topic,
-        audience=request.audience or "general readers",
-        length=request.length or "medium",
-    )
-    return result
+    try:
+        result = run_blog_pipeline(
+            topic=request.topic,
+            audience=request.audience or "general readers",
+            length=request.length or "medium",
+        )
+        return result
+    except Exception as e:
+        msg = str(e).lower()
+        if "rate limit" in msg or "rate limited" in msg or "429" in msg:
+            raise HTTPException(
+                status_code=429,
+                detail="API rate limit reached. Please try again in 5 minutes."
+            )
+        raise HTTPException(
+            status_code=500,
+            detail="Something went wrong. Please try again."
+        )
