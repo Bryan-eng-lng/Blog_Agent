@@ -232,94 +232,81 @@ async function renderBlog(data) {
 }
 
 function downloadPDF() {
-  const element = document.getElementById('blogContent');
   const topic = document.getElementById('topicInput').value.trim() || 'blog';
   const filename = topic.replace(/[^a-z0-9]/gi, '_').toLowerCase().slice(0, 50) + '.pdf';
 
-  // Inject a temporary style tag to force dark theme colors during PDF rendering
-  const styleTag = document.createElement('style');
-  styleTag.id = 'pdf-override-styles';
-  styleTag.textContent = `
-    #blogContent {
-      background: #111111 !important;
-      border: 1px solid #222222 !important;
-      border-radius: 16px !important;
-      padding: 56px 64px !important;
-      color: #f0ece4 !important;
-    }
-    #blogContent .blog-title {
-      color: #f0ece4 !important;
-    }
-    #blogContent .blog-section-heading {
-      color: #f0ece4 !important;
-    }
-    #blogContent .blog-body, #blogContent .blog-body p {
-      color: #d4cfc7 !important;
-    }
-    #blogContent .blog-tldr {
-      background: #1a1a1a !important;
-      border-left: 3px solid #c9a96e !important;
-    }
-    #blogContent .blog-tldr-title {
-      color: #c9a96e !important;
-    }
-    #blogContent .blog-tldr li {
-      color: #888880 !important;
-    }
-    #blogContent .blog-tldr li::before {
-      color: #c9a96e !important;
-    }
-    #blogContent .blog-meta-item {
-      color: #555550 !important;
-      background: #1a1a1a !important;
-      border: 1px solid #222222 !important;
-    }
-    #blogContent .blog-pull-quote {
-      color: #e8d5b0 !important;
-      border-left: 3px solid #c9a96e !important;
-    }
-    #blogContent .blog-key-takeaway {
-      background: rgba(201, 169, 110, 0.08) !important;
-      border: 1px solid rgba(201, 169, 110, 0.2) !important;
-    }
-    #blogContent .blog-key-takeaway-label {
-      color: #c9a96e !important;
-    }
-    #blogContent .blog-key-takeaway p {
-      color: #f0ece4 !important;
-    }
-    #blogContent .seo-section {
-      background: #1a1a1a !important;
-      border: 1px solid #222222 !important;
-    }
-    #blogContent .seo-title {
-      color: #555550 !important;
-    }
-    #blogContent .seo-item label {
-      color: #555550 !important;
-    }
-    #blogContent .seo-item p {
-      color: #888880 !important;
-    }
+  // Build a self-contained clone for PDF — no dependency on live DOM layout
+  const source = document.getElementById('blogContent');
+
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = `
+    width: 750px;
+    background: #111111;
+    color: #f0ece4;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    line-height: 1.8;
+    padding: 48px 56px;
+    box-sizing: border-box;
   `;
-  document.head.appendChild(styleTag);
+
+  const clone = source.cloneNode(true);
+
+  // Apply inline styles to every element in the clone so html2canvas picks them up
+  const applyStyles = (el) => {
+    const tag = el.tagName && el.tagName.toLowerCase();
+    const cls = el.className || '';
+
+    if (cls.includes('blog-title'))            { el.style.cssText += 'color:#f0ece4!important;font-size:30px;font-weight:700;margin-bottom:24px;line-height:1.2;'; }
+    else if (cls.includes('blog-section-heading')) { el.style.cssText += 'color:#f0ece4!important;font-size:20px;font-weight:600;margin:32px 0 12px;'; }
+    else if (cls.includes('blog-body'))        { el.style.cssText += 'color:#d4cfc7!important;'; }
+    else if (tag === 'p')                      { el.style.cssText += 'color:#d4cfc7!important;margin-bottom:16px;'; }
+    else if (cls.includes('blog-tldr') && !cls.includes('title') && !cls.includes('li')) {
+      el.style.cssText += 'background:#1a1a1a!important;border-left:3px solid #c9a96e;padding:16px 20px;margin-bottom:32px;border-radius:0 8px 8px 0;';
+    }
+    else if (cls.includes('blog-tldr-title')) { el.style.cssText += 'color:#c9a96e!important;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;'; }
+    else if (tag === 'li')                     { el.style.cssText += 'color:#888880!important;font-size:14px;margin-bottom:6px;list-style:none;padding-left:16px;'; }
+    else if (cls.includes('blog-meta-item'))   { el.style.cssText += 'color:#555550!important;background:#1a1a1a!important;border:1px solid #222!important;font-size:12px;padding:4px 12px;border-radius:20px;display:inline-block;margin-right:8px;'; }
+    else if (cls.includes('blog-meta'))        { el.style.cssText += 'margin-bottom:24px;'; }
+    else if (cls.includes('blog-pull-quote'))  { el.style.cssText += 'color:#e8d5b0!important;border-left:3px solid #c9a96e;padding:16px 24px;margin:32px 0;font-size:19px;font-style:italic;'; }
+    else if (cls.includes('blog-key-takeaway') && !cls.includes('label') && !cls.includes('p')) {
+      el.style.cssText += 'background:#1a1a1a!important;border:1px solid rgba(201,169,110,0.3)!important;border-radius:10px;padding:20px 24px;margin-top:32px;';
+    }
+    else if (cls.includes('blog-key-takeaway-label')) { el.style.cssText += 'color:#c9a96e!important;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;'; }
+    else if (cls.includes('seo-section'))      { el.style.cssText += 'background:#1a1a1a!important;border:1px solid #222!important;border-radius:12px;padding:20px 24px;margin-top:32px;'; }
+    else if (cls.includes('seo-title'))        { el.style.cssText += 'color:#555550!important;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;'; }
+    else if (tag === 'label')                  { el.style.cssText += 'color:#555550!important;font-size:11px;display:block;margin-bottom:4px;'; }
+    else if (cls.includes('seo-grid'))         { el.style.cssText += 'display:grid;grid-template-columns:1fr 1fr;gap:12px;'; }
+    else if (cls.includes('blog-image'))       { el.style.cssText += 'width:100%;border-radius:10px;margin:24px 0;opacity:0.85;'; }
+
+    Array.from(el.children || []).forEach(applyStyles);
+  };
+
+  applyStyles(clone);
+  wrapper.appendChild(clone);
+
+  // Temporarily attach to DOM (off-screen) so html2canvas can render it
+  wrapper.style.position = 'fixed';
+  wrapper.style.top = '-99999px';
+  wrapper.style.left = '0';
+  document.body.appendChild(wrapper);
 
   const opt = {
-    margin: [10, 10],
+    margin: 0,
     filename,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: {
       scale: 2,
-      backgroundColor: '#080808',
+      backgroundColor: '#111111',
       useCORS: true,
       logging: false,
-      windowWidth: 900
+      width: 750,
+      windowWidth: 750
     },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
 
-  html2pdf().set(opt).from(element).save().then(() => {
-    const tag = document.getElementById('pdf-override-styles');
-    if (tag) tag.remove();
+  html2pdf().set(opt).from(wrapper).save().then(() => {
+    document.body.removeChild(wrapper);
   });
 }
