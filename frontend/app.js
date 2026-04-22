@@ -236,6 +236,35 @@ function downloadPDF() {
   const topic = document.getElementById('topicInput').value.trim() || 'blog';
   const filename = topic.replace(/[^a-z0-9]/gi, '_').toLowerCase().slice(0, 50) + '.pdf';
 
+  // Inject a temporary style tag to override dark-theme colors for PDF rendering
+  const styleTag = document.createElement('style');
+  styleTag.id = 'pdf-override-styles';
+  styleTag.textContent = `
+    #blogContent, #blogContent * {
+      color: #111111 !important;
+      background: #ffffff !important;
+      border-color: #dddddd !important;
+    }
+    #blogContent .blog-title { color: #111111 !important; font-size: 28px !important; }
+    #blogContent .blog-section-heading { color: #222222 !important; }
+    #blogContent .blog-body, #blogContent .blog-body p { color: #333333 !important; }
+    #blogContent .blog-tldr { background: #f5f5f5 !important; border-left: 3px solid #c9a96e !important; }
+    #blogContent .blog-tldr-title { color: #c9a96e !important; }
+    #blogContent .blog-tldr li { color: #333333 !important; }
+    #blogContent .blog-pull-quote { color: #444444 !important; border-left: 3px solid #c9a96e !important; font-style: italic; }
+    #blogContent .blog-key-takeaway { background: #fdf8f0 !important; border: 1px solid #c9a96e !important; }
+    #blogContent .blog-key-takeaway-label { color: #c9a96e !important; }
+    #blogContent .blog-key-takeaway p { color: #222222 !important; }
+    #blogContent .blog-meta-item { color: #555555 !important; background: #f0f0f0 !important; border-color: #dddddd !important; }
+    #blogContent .seo-section { background: #f5f5f5 !important; border-color: #dddddd !important; }
+    #blogContent .seo-title { color: #888888 !important; }
+    #blogContent .seo-item label { color: #888888 !important; }
+    #blogContent .seo-item p { color: #444444 !important; }
+    #blogContent .score-number { color: #c9a96e !important; }
+    #blogContent .score-verdict { color: #444444 !important; }
+  `;
+  document.head.appendChild(styleTag);
+
   const opt = {
     margin: [15, 20],
     filename,
@@ -244,13 +273,9 @@ function downloadPDF() {
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
 
-  element.style.background = 'white';
-  element.style.color = '#111';
-  element.style.padding = '20px';
-
   html2pdf().set(opt).from(element).save().then(() => {
-    element.style.background = '';
-    element.style.color = '';
-    element.style.padding = '';
+    // Remove the temporary override styles after PDF is generated
+    const tag = document.getElementById('pdf-override-styles');
+    if (tag) tag.remove();
   });
 }
