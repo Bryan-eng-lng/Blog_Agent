@@ -236,45 +236,89 @@ function downloadPDF() {
   const topic = document.getElementById('topicInput').value.trim() || 'blog';
   const filename = topic.replace(/[^a-z0-9]/gi, '_').toLowerCase().slice(0, 50) + '.pdf';
 
-  // Inject a temporary style tag to override dark-theme colors for PDF rendering
+  // Inject a temporary style tag to force dark theme colors during PDF rendering
   const styleTag = document.createElement('style');
   styleTag.id = 'pdf-override-styles';
   styleTag.textContent = `
-    #blogContent, #blogContent * {
-      color: #111111 !important;
-      background: #ffffff !important;
-      border-color: #dddddd !important;
+    #blogContent {
+      background: #111111 !important;
+      border: 1px solid #222222 !important;
+      border-radius: 16px !important;
+      padding: 56px 64px !important;
+      color: #f0ece4 !important;
     }
-    #blogContent .blog-title { color: #111111 !important; font-size: 28px !important; }
-    #blogContent .blog-section-heading { color: #222222 !important; }
-    #blogContent .blog-body, #blogContent .blog-body p { color: #333333 !important; }
-    #blogContent .blog-tldr { background: #f5f5f5 !important; border-left: 3px solid #c9a96e !important; }
-    #blogContent .blog-tldr-title { color: #c9a96e !important; }
-    #blogContent .blog-tldr li { color: #333333 !important; }
-    #blogContent .blog-pull-quote { color: #444444 !important; border-left: 3px solid #c9a96e !important; font-style: italic; }
-    #blogContent .blog-key-takeaway { background: #fdf8f0 !important; border: 1px solid #c9a96e !important; }
-    #blogContent .blog-key-takeaway-label { color: #c9a96e !important; }
-    #blogContent .blog-key-takeaway p { color: #222222 !important; }
-    #blogContent .blog-meta-item { color: #555555 !important; background: #f0f0f0 !important; border-color: #dddddd !important; }
-    #blogContent .seo-section { background: #f5f5f5 !important; border-color: #dddddd !important; }
-    #blogContent .seo-title { color: #888888 !important; }
-    #blogContent .seo-item label { color: #888888 !important; }
-    #blogContent .seo-item p { color: #444444 !important; }
-    #blogContent .score-number { color: #c9a96e !important; }
-    #blogContent .score-verdict { color: #444444 !important; }
+    #blogContent .blog-title {
+      color: #f0ece4 !important;
+    }
+    #blogContent .blog-section-heading {
+      color: #f0ece4 !important;
+    }
+    #blogContent .blog-body, #blogContent .blog-body p {
+      color: #d4cfc7 !important;
+    }
+    #blogContent .blog-tldr {
+      background: #1a1a1a !important;
+      border-left: 3px solid #c9a96e !important;
+    }
+    #blogContent .blog-tldr-title {
+      color: #c9a96e !important;
+    }
+    #blogContent .blog-tldr li {
+      color: #888880 !important;
+    }
+    #blogContent .blog-tldr li::before {
+      color: #c9a96e !important;
+    }
+    #blogContent .blog-meta-item {
+      color: #555550 !important;
+      background: #1a1a1a !important;
+      border: 1px solid #222222 !important;
+    }
+    #blogContent .blog-pull-quote {
+      color: #e8d5b0 !important;
+      border-left: 3px solid #c9a96e !important;
+    }
+    #blogContent .blog-key-takeaway {
+      background: rgba(201, 169, 110, 0.08) !important;
+      border: 1px solid rgba(201, 169, 110, 0.2) !important;
+    }
+    #blogContent .blog-key-takeaway-label {
+      color: #c9a96e !important;
+    }
+    #blogContent .blog-key-takeaway p {
+      color: #f0ece4 !important;
+    }
+    #blogContent .seo-section {
+      background: #1a1a1a !important;
+      border: 1px solid #222222 !important;
+    }
+    #blogContent .seo-title {
+      color: #555550 !important;
+    }
+    #blogContent .seo-item label {
+      color: #555550 !important;
+    }
+    #blogContent .seo-item p {
+      color: #888880 !important;
+    }
   `;
   document.head.appendChild(styleTag);
 
   const opt = {
-    margin: [15, 20],
+    margin: [10, 10],
     filename,
-    image: { type: 'jpeg', quality: 0.95 },
-    html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true },
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      backgroundColor: '#080808',
+      useCORS: true,
+      logging: false,
+      windowWidth: 900
+    },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
 
   html2pdf().set(opt).from(element).save().then(() => {
-    // Remove the temporary override styles after PDF is generated
     const tag = document.getElementById('pdf-override-styles');
     if (tag) tag.remove();
   });
