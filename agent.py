@@ -8,6 +8,14 @@ from tools import web_search
 
 load_dotenv()
 
+# LangSmith tracing — reads LANGCHAIN_* vars from .env automatically
+os.environ.setdefault("LANGCHAIN_TRACING_V2", os.getenv("LANGCHAIN_TRACING_V2", "false"))
+os.environ.setdefault("LANGCHAIN_ENDPOINT", os.getenv("LANGCHAIN_ENDPOINT", "https://api.smith.langchain.com"))
+os.environ.setdefault("LANGCHAIN_API_KEY", os.getenv("LANGCHAIN_API_KEY", ""))
+os.environ.setdefault("LANGCHAIN_PROJECT", os.getenv("LANGCHAIN_PROJECT", "blog-agent"))
+
+
+
 GROQ_KEYS = [v for k, v in sorted(os.environ.items()) if k.startswith("GROQ_KEY") and v]
 CEREBRAS_KEY = os.getenv("CEREBRAS_API_KEY")
 _key_index = 0

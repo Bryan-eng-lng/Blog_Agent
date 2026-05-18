@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sujal Kandi — Resume</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Georgia', serif;
+    font-size: 11px;
+    color: #1a1a1a;
+    background: #fff;
+    padding: 36px 48px;
+    max-width: 800px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+  .name {
+    font-size: 26px;
+    font-weight: bold;
+    text-align: center;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .title {
+    font-size: 13px;
+    text-align: center;
+    color: #444;
+    margin-bottom: 6px;
+    font-style: italic;
+  }
+  .contact {
+    text-align: center;
+    font-size: 10.5px;
+    color: #333;
+    margin-bottom: 18px;
+  }
+  .contact a { color: #0066cc; text-decoration: underline; }
+  hr { border: none; border-top: 1.5px solid #1a1a1a; margin-bottom: 10px; }
+  .section-title {
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #aaa;
+    padding-bottom: 3px;
+    margin-bottom: 8px;
+    margin-top: 14px;
+  }
+  .summary {
+    font-size: 11px;
+    color: #222;
+    line-height: 1.6;
+    margin-bottom: 4px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10.5px;
+    margin-bottom: 4px;
+  }
+  th {
+    background: #f0f0f0;
+    font-weight: bold;
+    padding: 5px 8px;
+    text-align: left;
+    border: 1px solid #ccc;
+  }
+  td {
+    padding: 5px 8px;
+    border: 1px solid #ccc;
+    vertical-align: top;
+  }
+  .project-name {
+    font-weight: bold;
+    font-size: 11.5px;
+    margin-top: 10px;
+    margin-bottom: 2px;
+  }
+  .project-tech {
+    font-size: 10px;
+    color: #444;
+    margin-bottom: 2px;
+  }
+  .project-links {
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+  .project-links a {
+    color: #0066cc;
+    text-decoration: underline;
+  }
+  .project-links span {
+    color: #0066cc;
+  }
+  ul {
+    padding-left: 16px;
+    margin-top: 2px;
+  }
+  ul li {
+    font-size: 10.5px;
+    margin-bottom: 2px;
+    line-height: 1.5;
+  }
+  ul li strong { font-weight: bold; }
+  .edu-item {
+    font-size: 11px;
+    margin-bottom: 3px;
+  }
+  .edu-item strong { font-weight: bold; }
+  @media print {
+    body { padding: 20px 32px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="name">Sujal Kandi</div>
+<div class="title">AI Engineer — Agentic AI &amp; GenAI</div>
+<div class="contact">
+  kandisujal@gmail.com &nbsp;|&nbsp; 9346766534 &nbsp;|&nbsp; Hyderabad<br/>
+  <a href="https://github.com/Bryan-eng-lng">GitHub: github.com/Bryan-eng-lng</a>
+  &nbsp;|&nbsp;
+  <a href="https://www.linkedin.com/in/sujal-kandi-914974372/">LinkedIn: linkedin.com/in/sujal-kandi-914974372</a>
+</div>
+
+<hr/>
+
+<div class="section-title">Summary</div>
+<div class="summary">
+  AI Engineer specialized in building production-grade agentic systems and multi-agent pipelines.
+  Hands-on experience with LangGraph, RAG, LLM orchestration, and full-stack AI deployment.
+  Built autonomous agents that plan, self-critique, and self-correct — all deployed live on the web.
+</div>
+
+<div class="section-title">Skills</div>
+<table>
+  <tr>
+    <th>Category</th>
+    <th>Skills</th>
+  </tr>
+  <tr>
+    <td><strong>Agentic AI &amp; LLM Orchestration</strong></td>
+    <td>LangGraph, LangChain, Multi-Agent Pipelines, RAG, ChromaDB, Prompt Engineering, API Key Rotation, Human-in-the-Loop</td>
+  </tr>
+  <tr>
+    <td><strong>Generative AI</strong></td>
+    <td>Groq, Together.ai, Cerebras, Ollama, Hugging Face</td>
+  </tr>
+  <tr>
+    <td><strong>NLP</strong></td>
+    <td>Transformers, BERT, RoBERTa, Sentiment Analysis, ABSA, Embeddings</td>
+  </tr>
+  <tr>
+    <td><strong>Tools &amp; Frameworks</strong></td>
+    <td>Python, FastAPI, Flask, Streamlit, Pandas, NumPy, Git, Vercel, Render</td>
+  </tr>
+</table>
+
+<div class="section-title">Projects</div>
+
+<div class="project-name">AI Research Agent</div>
+<div class="project-tech"><strong>Tech:</strong> LangGraph, LangChain, FastAPI, Groq, Together.ai, Tavily, ChromaDB, fpdf2</div>
+<div class="project-links">
+  <span>Live App:</span> <a href="https://research-agent-zxhy.onrender.com">research-agent-zxhy.onrender.com</a>
+  &nbsp;|&nbsp;
+  <span>Code:</span> <a href="https://github.com/Bryan-eng-lng/AI_RESEARCH_AGENT">github.com/Bryan-eng-lng/AI_RESEARCH_AGENT</a>
+</div>
+<ul>
+  <li><strong>Built a 7-node autonomous research pipeline:</strong> Strategist → Crawler → Architect → Section Challenger → Targeted Rewriter → Factcheck → Critic.</li>
+  <li>Agent decides its own report structure, rewrites weak sections, and scores its own quality until publish-ready.</li>
+  <li><strong>Implemented hallucination firewall:</strong> source indexing and citation verification.</li>
+  <li><strong>Built automatic API key rotation</strong> across multiple Groq keys with Together.ai fallback.</li>
+  <li><strong>Deployed full-stack:</strong> FastAPI backend + vanilla JS UI with real-time progress tracking and PDF download.</li>
+</ul>
+
+<div class="project-name">Blog Writer Agent</div>
+<div class="project-tech"><strong>Tech:</strong> LangGraph, LangChain, FastAPI, Groq, Cerebras, Tavily, ChromaDB, Vercel, Render</div>
+<div class="project-links">
+  <span>Live App:</span> <a href="https://blog-agent-rho.vercel.app">blog-agent-rho.vercel.app</a>
+  &nbsp;|&nbsp;
+  <span>Code:</span> <a href="https://github.com/Bryan-eng-lng/Blog_Agent">github.com/Bryan-eng-lng/Blog_Agent</a>
+</div>
+<ul>
+  <li><strong>Built a 9-step autonomous blog writing pipeline:</strong> Plan → Research → Fact Extraction → Write → Critique &amp; Rewrite → Cliché Detection → SEO Metadata → Extras → Quality Score.</li>
+  <li><strong>Implemented temperature strategy per node</strong> for task-specific LLM behavior (0.0 for scoring, 0.3 for extraction, 0.6 for writing).</li>
+  <li>Cliché detector scans 30+ phrases and enforces topic-specific replacements automatically.</li>
+  <li><strong>Deployed split architecture:</strong> FastAPI on Render, frontend on Vercel with PDF export.</li>
+</ul>
+
+<div class="project-name">Reviews Summarizer</div>
+<div class="project-tech"><strong>Tech:</strong> Python, Transformers, BERT, BART, Flan-T5, Gradio, Hugging Face</div>
+<div class="project-links">
+  <span>Live App:</span> <a href="https://huggingface.co/spaces/Datasujal/Reviews_Summarizer">huggingface.co/spaces/Datasujal/Reviews_Summarizer</a>
+  &nbsp;|&nbsp;
+  <span>Code:</span> <a href="https://github.com/Bryan-eng-lng/ReviewSummarizer">github.com/Bryan-eng-lng/ReviewSummarizer</a>
+</div>
+<ul>
+  <li><strong>Built a multi-model NLP pipeline</strong> combining 3 Hugging Face models: BERT for sentiment classification, BART-large-CNN for abstractive summarization, and Flan-T5 for conversational Q&amp;A over reviews.</li>
+  <li><strong>Classifies reviews by predicted star rating</strong> (1–2 stars → Negative, 3 → Neutral, 4–5 → Positive) using <code>nlptown/bert-base-multilingual-uncased-sentiment</code> trained on real product reviews.</li>
+  <li>Generates AI summaries of customer sentiment per category — giving businesses a compressed view of what customers actually think.</li>
+  <li><strong>Integrated an AI chatbot</strong> (Flan-T5) that answers natural language questions about the analyzed review data.</li>
+  <li>Deployed on Hugging Face Spaces with a Gradio UI; accepts CSV uploads with automatic column detection.</li>
+</ul>
+
+<div class="section-title">Education</div>
+<div class="edu-item"><strong>IIT Patna + Masai School</strong> — Certified Program, Full-Stack ML &amp; GenAI</div>
+
+</body>
+</html>
