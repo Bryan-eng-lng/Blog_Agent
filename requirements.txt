@@ -10,3 +10,4 @@ langgraph
 groq
 tavily-python
 chromadb
+sentry-sdk[fastapi]==2.25.1

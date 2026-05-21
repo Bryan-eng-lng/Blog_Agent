@@ -1,2 +1,4 @@
 .env
 blog_memory_db
+blog_agent.log
+blog_api.log

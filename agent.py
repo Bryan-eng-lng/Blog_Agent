@@ -1,18 +1,31 @@
 import os
 import time
+import uuid
+import logging
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
-from langchain_groq import ChatGroq
-from groq import RateLimitError
-from tools import web_search
 
 load_dotenv()
 
-# LangSmith tracing — reads LANGCHAIN_* vars from .env automatically
-os.environ.setdefault("LANGCHAIN_TRACING_V2", os.getenv("LANGCHAIN_TRACING_V2", "false"))
-os.environ.setdefault("LANGCHAIN_ENDPOINT", os.getenv("LANGCHAIN_ENDPOINT", "https://api.smith.langchain.com"))
-os.environ.setdefault("LANGCHAIN_API_KEY", os.getenv("LANGCHAIN_API_KEY", ""))
-os.environ.setdefault("LANGCHAIN_PROJECT", os.getenv("LANGCHAIN_PROJECT", "blog-agent"))
+# ── Logging setup ─────────────────────────────────────────────────────────────
+log_formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+logger = logging.getLogger("blog_agent")
+logger.setLevel(logging.INFO)
+
+# Console handler — shows in terminal and Render logs
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(log_formatter)
+logger.addHandler(console_handler)
+
+# File handler — saves to blog_agent.log locally
+file_handler = logging.FileHandler("blog_agent.log")
+file_handler.setFormatter(log_formatter)
+logger.addHandler(file_handler)
+
+from langchain_groq import ChatGroq
+from groq import RateLimitError
+from tools import web_search
+from langsmith import traceable
 
 
 
@@ -122,8 +135,11 @@ Blog:
     return _invoke(prompt, temperature=0.5)
 
 
+@traceable(name="plan_blog")
 def plan_blog(topic: str, audience: str) -> str:
-    prompt = f"""
+    logger.info(f"[PLAN] Starting | topic='{topic[:60]}' | audience='{audience[:40]}'")
+    start = time.time()
+    result = _invoke(f"""
 You are a blog strategist and content analyst.
 
 Topic: {topic}
@@ -141,8 +157,9 @@ Recommended Length: one word — short / medium / long
 
 COMPETITOR GAP:
 In 2-3 sentences: what angle do most articles on this topic take, and what unique angle would make this blog stand out?
-"""
-    return _invoke(prompt, temperature=0.3)
+""", temperature=0.3)
+    logger.info(f"[PLAN] Done | duration={time.time()-start:.1f}s")
+    return result
 
 
 def analyze_competitor_gap(topic: str) -> str:
@@ -165,7 +182,10 @@ def analyze_competitor_gap(topic: str) -> str:
     return "\n\n".join(results)
 
 
+@traceable(name="research")
 def research(topic: str) -> str:
+    logger.info(f"[RESEARCH] Starting web search | topic='{topic[:60]}'")
+    start = time.time()
     queries = [
         topic,
         f"{topic} surprising facts and lesser known insights",
@@ -180,9 +200,12 @@ def research(topic: str) -> str:
     with ThreadPoolExecutor(max_workers=4) as executor:
         results = list(executor.map(fetch, queries))
 
-    return "\n\n".join(results)
+    combined = "\n\n".join(results)
+    logger.info(f"[RESEARCH] Done | duration={time.time()-start:.1f}s | chars={len(combined)}")
+    return combined
 
 
+@traceable(name="extract_facts")
 def extract_facts(topic: str, research_data: str) -> str:
     prompt = f"""
 You are a research analyst. Extract only the most concrete, specific, and useful information.
@@ -206,7 +229,10 @@ Research Data:
     return _invoke(prompt, temperature=0.3)
 
 
+@traceable(name="write_blog")
 def write_blog(topic: str, audience: str, plan: str, research_data: str, memory: str, length: str = "medium", gap: str = "") -> str:
+    logger.info(f"[WRITE] Starting | topic='{topic[:60]}' | length={length}")
+    start = time.time()
     time.sleep(3)
     facts = extract_facts(topic, research_data)
     length_instruction = LENGTH_GUIDE.get(length, LENGTH_GUIDE["medium"])
@@ -259,10 +285,15 @@ No hashtags or emojis. Blank line between sections.
 
 Write the full blog now.
 """
-    return _invoke(prompt, temperature=0.6)
+    result = _invoke(prompt, temperature=0.6)
+    logger.info(f"[WRITE] Done | duration={time.time()-start:.1f}s | words={len(result.split())}")
+    return result
 
 
+@traceable(name="critique_and_rewrite")
 def critique_and_rewrite(blog: str, topic: str, audience: str) -> str:
+    logger.info(f"[CRITIQUE] Starting rewrite | topic='{topic[:60]}'")
+    start = time.time()
     prompt = f"""
 You are a senior editor from Wired and The Atlantic. Ruthless about quality.
 
@@ -294,9 +325,9 @@ Return only the final blog. No commentary.
 Original Blog:
 {blog}
 """
-    return _invoke(prompt, temperature=0.6)
-
-
+    result = _invoke(prompt, temperature=0.6)
+    logger.info(f"[CRITIQUE] Done | duration={time.time()-start:.1f}s | words={len(result.split())}")
+    return result
 def score_blog(blog: str, topic: str, seo: dict) -> dict:
     prompt = f"""
 You are a professional blog quality analyst. Score objectively. Be honest, not generous.
@@ -398,6 +429,7 @@ Return the full blog with inline citations and Sources section appended at the e
     return _invoke(prompt, temperature=0.0)
 
 
+@traceable(name="generate_seo")
 def generate_seo(topic: str, blog: str) -> dict:
     word_count = len(blog.split())
     read_time = max(1, round(word_count / 200))
