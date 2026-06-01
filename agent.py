@@ -1,26 +1,35 @@
-import os
-import time
-import uuid
-import logging
-from concurrent.futures import ThreadPoolExecutor
-from dotenv import load_dotenv
+import os  #read env variables like API Keys
+import time #used for timing how long each step takes 
+import uuid #generates unique IDs (imported but not actually used in this file)
+import logging #writes logs to terminal and file 
+from concurrent.futures import ThreadPoolExecutor #runs multiple tasks at the same time (parallel)
+from dotenv import load_dotenv #reads your .env file and loadsthe keys into memory 
+
+
 
 load_dotenv()
+
+
 
 # ── Logging setup ─────────────────────────────────────────────────────────────
 log_formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger("blog_agent")
 logger.setLevel(logging.INFO)
 
+
+
 # Console handler — shows in terminal and Render logs
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(log_formatter)
 logger.addHandler(console_handler)
 
+
+
 # File handler — saves to blog_agent.log locally
 file_handler = logging.FileHandler("blog_agent.log")
 file_handler.setFormatter(log_formatter)
 logger.addHandler(file_handler)
+
 
 from langchain_groq import ChatGroq
 from groq import RateLimitError
@@ -43,7 +52,7 @@ def _invoke(prompt: str, temperature: float) -> str:
             try:
                 from langchain_cerebras import ChatCerebras
                 llm = ChatCerebras(
-                    model="llama-3.3-70b",
+                    model="gpt-oss-120b",
                     temperature=temperature
                 )
                 return llm.invoke(prompt).content
@@ -55,6 +64,8 @@ def _invoke(prompt: str, temperature: float) -> str:
                 else:
                     print(f"Cerebras failed: {e}, falling back to Groq...")
                     break
+
+# Above one Cerebras block 
 
     # Fall back to Groq with key rotation
     for _ in range(len(GROQ_KEYS) * 2):
@@ -71,6 +82,8 @@ def _invoke(prompt: str, temperature: float) -> str:
             time.sleep(2)
 
     raise Exception("All LLM providers are rate limited. Try again in a minute.")
+#Groq Block
+
 
 
 CLICHES = [
@@ -160,6 +173,9 @@ In 2-3 sentences: what angle do most articles on this topic take, and what uniqu
 """, temperature=0.3)
     logger.info(f"[PLAN] Done | duration={time.time()-start:.1f}s")
     return result
+
+#plan_blog traceble - this decorator sends the functions inpu/ouptut to LangSmith automatically Calls _invoke with a prompt asking for a blog outline + competitor gap analysis . Return a string with the plan .
+
 
 
 def analyze_competitor_gap(topic: str) -> str:
