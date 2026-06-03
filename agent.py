@@ -2,7 +2,8 @@ import os  #read env variables like API Keys
 import time #used for timing how long each step takes 
 import uuid #generates unique IDs (imported but not actually used in this file)
 import logging #writes logs to terminal and file 
-from concurrent.futures import ThreadPoolExecutor #runs multiple tasks at the same time (parallel)
+import threading  # for the cancellation flag
+from concurrent.futures import ThreadPoolExecutor, as_completed  #runs multiple tasks at the same time (parallel)
 from dotenv import load_dotenv #reads your .env file and loadsthe keys into memory 
 
 
@@ -37,18 +38,41 @@ from tools import web_search
 from langsmith import traceable
 
 
-
 GROQ_KEYS = [v for k, v in sorted(os.environ.items()) if k.startswith("GROQ_KEY") and v]
 CEREBRAS_KEY = os.getenv("CEREBRAS_API_KEY")
 _key_index = 0
+
+# ── Cancellation flag ─────────────────────────────────────────────────────────
+# Set this to True to stop all in-flight LLM calls and graph nodes immediately.
+_cancel_event = threading.Event()
+
+
+def cancel_pipeline():
+    """Call this to hard-stop the current blog generation run."""
+    _cancel_event.set()
+    logger.warning("[CANCEL] Pipeline cancellation requested — stopping all steps.")
+
+
+def reset_pipeline():
+    """Call this before starting a new run to clear any previous cancel state."""
+    _cancel_event.clear()
+
+
+def _check_cancelled():
+    """Raises RuntimeError immediately if a cancellation has been requested."""
+    if _cancel_event.is_set():
+        raise RuntimeError("Pipeline cancelled — stopping to avoid wasting tokens.")
 
 
 def _invoke(prompt: str, temperature: float) -> str:
     global _key_index
 
+    _check_cancelled()  # bail out before making any LLM call
+
     # Try Cerebras first — faster and higher rate limits
     if CEREBRAS_KEY:
         for attempt in range(3):
+            _check_cancelled()
             try:
                 from langchain_cerebras import ChatCerebras
                 llm = ChatCerebras(
@@ -56,19 +80,25 @@ def _invoke(prompt: str, temperature: float) -> str:
                     temperature=temperature
                 )
                 return llm.invoke(prompt).content
+            except RuntimeError:
+                raise  # propagate cancellation immediately
             except Exception as e:
                 err = str(e).lower()
                 if "rate" in err or "429" in err:
                     print(f"Cerebras rate limit, waiting 10s... (attempt {attempt+1})")
-                    time.sleep(10)
+                    # Sleep in small chunks so cancellation is noticed quickly
+                    for _ in range(10):
+                        if _cancel_event.wait(timeout=1):
+                            raise RuntimeError("Pipeline cancelled during Cerebras backoff.")
                 else:
                     print(f"Cerebras failed: {e}, falling back to Groq...")
                     break
 
-# Above one Cerebras block 
+# Above one Cerebras block
 
     # Fall back to Groq with key rotation
     for _ in range(len(GROQ_KEYS) * 2):
+        _check_cancelled()
         try:
             llm = ChatGroq(
                 model="llama-3.3-70b-versatile",
@@ -76,10 +106,15 @@ def _invoke(prompt: str, temperature: float) -> str:
                 api_key=GROQ_KEYS[_key_index]
             )
             return llm.invoke(prompt).content
+        except RuntimeError:
+            raise  # propagate cancellation immediately
         except RateLimitError:
             print(f"Rate limit on Groq key {_key_index + 1}, switching...")
             _key_index = (_key_index + 1) % len(GROQ_KEYS)
-            time.sleep(2)
+            # Sleep in small chunks so cancellation is noticed quickly
+            for _ in range(2):
+                if _cancel_event.wait(timeout=1):
+                    raise RuntimeError("Pipeline cancelled during Groq backoff.")
 
     raise Exception("All LLM providers are rate limited. Try again in a minute.")
 #Groq Block
@@ -150,6 +185,7 @@ Blog:
 
 @traceable(name="plan_blog")
 def plan_blog(topic: str, audience: str) -> str:
+    _check_cancelled()
     logger.info(f"[PLAN] Starting | topic='{topic[:60]}' | audience='{audience[:40]}'")
     start = time.time()
     result = _invoke(f"""
@@ -200,6 +236,7 @@ def analyze_competitor_gap(topic: str) -> str:
 
 @traceable(name="research")
 def research(topic: str) -> str:
+    _check_cancelled()
     logger.info(f"[RESEARCH] Starting web search | topic='{topic[:60]}'")
     start = time.time()
     queries = [
@@ -210,11 +247,26 @@ def research(topic: str) -> str:
     ]
 
     def fetch(q):
+        _check_cancelled()  # skip fetch entirely if already cancelled
         result = web_search(q)
         return f"Query: {q}\n{result}"
 
+    results = []
     with ThreadPoolExecutor(max_workers=4) as executor:
-        results = list(executor.map(fetch, queries))
+        futures = {executor.submit(fetch, q): q for q in queries}
+        for future in as_completed(futures):
+            if _cancel_event.is_set():
+                # Cancel remaining futures and exit early
+                for f in futures:
+                    f.cancel()
+                raise RuntimeError("Pipeline cancelled during research.")
+            try:
+                results.append(future.result())
+            except RuntimeError:
+                raise  # propagate cancellation
+            except Exception as e:
+                logger.warning(f"[RESEARCH] fetch failed: {e}")
+                results.append(f"Query: {futures[future]}\n[fetch failed: {e}]")
 
     combined = "\n\n".join(results)
     logger.info(f"[RESEARCH] Done | duration={time.time()-start:.1f}s | chars={len(combined)}")
@@ -223,6 +275,7 @@ def research(topic: str) -> str:
 
 @traceable(name="extract_facts")
 def extract_facts(topic: str, research_data: str) -> str:
+    _check_cancelled()
     prompt = f"""
 You are a research analyst. Extract only the most concrete, specific, and useful information.
 
@@ -247,6 +300,7 @@ Research Data:
 
 @traceable(name="write_blog")
 def write_blog(topic: str, audience: str, plan: str, research_data: str, memory: str, length: str = "medium", gap: str = "") -> str:
+    _check_cancelled()
     logger.info(f"[WRITE] Starting | topic='{topic[:60]}' | length={length}")
     start = time.time()
     time.sleep(3)
@@ -308,6 +362,7 @@ Write the full blog now.
 
 @traceable(name="critique_and_rewrite")
 def critique_and_rewrite(blog: str, topic: str, audience: str) -> str:
+    _check_cancelled()
     logger.info(f"[CRITIQUE] Starting rewrite | topic='{topic[:60]}'")
     start = time.time()
     prompt = f"""

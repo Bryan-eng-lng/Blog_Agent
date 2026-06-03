@@ -23,6 +23,8 @@ from agent import (
     generate_extras,
     generate_citations,
     score_blog,
+    cancel_pipeline,
+    reset_pipeline,
 )
 from memory import retrieve_memory, store_memory
 
@@ -48,28 +50,42 @@ class BlogState(TypedDict):
     max_iterations: int     # max allowed rewrites
 
 
+# ── Node wrapper — cancels the whole pipeline on any node failure ─────────────
+
+def _guarded(fn):
+    """Decorator that cancels the pipeline if the node raises."""
+    def wrapper(state: BlogState) -> BlogState:
+        try:
+            return fn(state)
+        except Exception:
+            cancel_pipeline()
+            raise
+    return wrapper
+
+
 # ── Nodes ────────────────────────────────────────────────────────────────────
 
+@_guarded
 def node_plan(state: BlogState) -> BlogState:
     state["plan"] = plan_blog(state["topic"], state["audience"])
     return state
 
-
+@_guarded
 def node_research(state: BlogState) -> BlogState:
     state["research_data"] = research(state["topic"])
     return state
 
-
+@_guarded
 def node_extract_facts(state: BlogState) -> BlogState:
     state["facts"] = extract_facts(state["topic"], state["research_data"])
     return state
 
-
+@_guarded
 def node_retrieve_memory(state: BlogState) -> BlogState:
     state["memory"] = retrieve_memory(state["topic"])
     return state
 
-
+@_guarded
 def node_write(state: BlogState) -> BlogState:
     state["draft"] = write_blog(
         topic=state["topic"],
@@ -84,7 +100,7 @@ def node_write(state: BlogState) -> BlogState:
     state["iteration"] = 0
     return state
 
-
+@_guarded
 def node_critique_rewrite(state: BlogState) -> BlogState:
     state["final_blog"] = critique_and_rewrite(
         state["final_blog"], state["topic"], state["audience"]
@@ -92,31 +108,31 @@ def node_critique_rewrite(state: BlogState) -> BlogState:
     state["iteration"] = state.get("iteration", 0) + 1
     return state
 
-
+@_guarded
 def node_score(state: BlogState) -> BlogState:
     seo = generate_seo(state["topic"], state["final_blog"])
     state["seo"] = seo
     state["scores"] = score_blog(state["final_blog"], state["topic"], seo)
     return state
 
-
+@_guarded
 def node_fix_cliches(state: BlogState) -> BlogState:
     state["final_blog"] = fix_cliches(state["final_blog"], state["topic"])
     return state
 
-
+@_guarded
 def node_citations(state: BlogState) -> BlogState:
     state["final_blog"] = generate_citations(
         state["final_blog"], state["facts"], state["topic"]
     )
     return state
 
-
+@_guarded
 def node_extras(state: BlogState) -> BlogState:
     state["extras"] = generate_extras(state["final_blog"], state["topic"])
     return state
 
-
+@_guarded
 def node_save_memory(state: BlogState) -> BlogState:
     store_memory(state["topic"])
     store_memory(state["final_blog"])
@@ -195,6 +211,8 @@ blog_graph = build_graph()
 
 
 def run_blog_pipeline(topic: str, audience: str, length: str = "medium") -> dict:
+    reset_pipeline()  # clear any previous cancel state before starting
+
     initial_state: BlogState = {
         "topic":          topic,
         "audience":       audience,
@@ -212,7 +230,11 @@ def run_blog_pipeline(topic: str, audience: str, length: str = "medium") -> dict
         "max_iterations": 3,
     }
 
-    result = blog_graph.invoke(initial_state)
+    try:
+        result = blog_graph.invoke(initial_state)
+    except Exception:
+        cancel_pipeline()  # ensure flag is set so any background work stops
+        raise
 
     return {
         "topic":      result["topic"],
